@@ -1,0 +1,79 @@
+URMS backend — setup and run
+============================
+
+Prerequisites
+---------------
+- Python 3.10+ (3.14 supported via psycopg3)
+- PostgreSQL 14+ with a database created for this app (e.g. `urms`)
+
+1) Create database
+------------------
+In `psql` or pgAdmin, create a database and user, then grant access.
+
+Example (adjust names/passwords):
+
+  CREATE DATABASE urms;
+  CREATE USER urms_user WITH PASSWORD 'your_password';
+  GRANT ALL PRIVILEGES ON DATABASE urms TO urms_user;
+
+2) Configure environment
+------------------------
+Copy `.env.example` to `.env` in this `backend` folder.
+
+Set `DATABASE_URL` using the **psycopg3** driver, for example:
+
+  DATABASE_URL=postgresql+psycopg://urms_user:your_password@localhost:5432/urms
+
+If the password contains special characters (`#`, `@`, `:`, `/`, etc.), URL-encode them in the URL (e.g. `#` → `%23`, `@` → `%40`).
+
+Set `SECRET_KEY` to a long random string for JWT signing.
+
+Google: use the same OAuth **Web client ID** string in `GOOGLE_CLIENT_ID` (backend `.env`) and `REACT_APP_GOOGLE_CLIENT_ID` (frontend `.env`). The backend checks that Google tokens were issued for that client.
+
+Seed admin: `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` are values **you choose** (not from Google). They create the first admin account when you run `python -m app.db.seed` (after migrations). Leave blank if you will promote a user another way.
+
+3) Install dependencies
+-----------------------
+From the `backend` directory:
+
+  py -3 -m venv venv
+  .\venv\Scripts\activate
+  python -m pip install --upgrade pip
+  python -m pip install -r requirements.txt
+
+Notes:
+- If `pip` is blocked by Application Control, always use **`python -m pip`** (not `pip.exe`).
+- If you see **No Python at '...some other user...python.exe'**, the `venv` was copied from another PC or user. Delete the `venv` folder and recreate it with **`py -3 -m venv venv`** on this machine.
+- **Python 3.14**: use the updated `requirements.txt` (newer pydantic has prebuilt wheels). If install still tries to compile Rust, install **Python 3.12** from python.org and run **`py -3.12 -m venv venv`** instead.
+- If you get **Application Control policy has blocked** when **importing** packages (e.g. pydantic_core DLL), Windows is blocking native code under `venv`. Try: add an exclusion for your project folder in Windows Security / antivirus, or ask IT to allow Python venv paths. Using Python 3.12 LTS from a standard install sometimes avoids this.
+
+4) Run migrations
+-----------------
+Ensure `DATABASE_URL` is set in `.env`, then from `backend` use the **alembic** script (not `python -m alembic`, which clashes with the local `alembic` folder):
+
+  .\venv\Scripts\alembic.exe upgrade head
+
+5) Seed roles, resource types, rules (and optional admin)
+---------------------------------------------------------
+Use the venv Python (not `py -m`, which may skip the venv):
+
+  .\venv\Scripts\python.exe -m app.db.seed
+
+6) Start API
+------------
+From `backend`, set `PYTHONPATH` to the backend root so `app` resolves:
+
+  set PYTHONPATH=.
+  .\venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+Open interactive docs at: http://127.0.0.1:8000/docs
+
+7) Connect from the React app
+-----------------------------
+The frontend expects the API at `http://127.0.0.1:8000` (see `urms-frontend/src/api/axios.ts`).
+
+For Google Sign-In on the frontend, create `urms-frontend/.env`:
+
+  REACT_APP_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+
+Restart `npm start` after changing `.env`.
