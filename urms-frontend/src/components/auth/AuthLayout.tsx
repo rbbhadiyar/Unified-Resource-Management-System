@@ -8,9 +8,17 @@ const FEATURES = [
   "Detailed analytics and usage reports",
 ];
 
+const METRICS = [
+  { value: "12k+", label: "items tracked" },
+  { value: "98%", label: "return accuracy" },
+  { value: "340+", label: "institutions" },
+];
+
 const AuthLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="auth-page">
+      <div className="auth-orb auth-orb-one" />
+      <div className="auth-orb auth-orb-two" />
 
       {/* ── Left brand panel ── */}
       <div className="auth-brand">
@@ -24,8 +32,28 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
         </div>
 
         <p className="auth-brand-tagline">
-          Unified Resource Management System — built for institutions that move fast.
+          Unified Resource Management System, rebuilt for institutions that need fast requests, accountable returns, and beautiful operations.
         </p>
+
+        <div className="auth-brand-preview" aria-hidden="true">
+          <div className="auth-preview-head">
+            <span>Resource Pulse</span>
+            <strong>Live</strong>
+          </div>
+          <div className="auth-preview-grid">
+            {METRICS.map((m) => (
+              <div key={m.label}>
+                <strong>{m.value}</strong>
+                <span>{m.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="auth-preview-bars">
+            <span style={{ width: "78%" }} />
+            <span style={{ width: "62%" }} />
+            <span style={{ width: "46%" }} />
+          </div>
+        </div>
 
         <div className="auth-brand-features">
           {FEATURES.map((f) => (

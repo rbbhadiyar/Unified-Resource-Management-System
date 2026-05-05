@@ -1,154 +1,160 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 
-// ─── Icon components ──────────────────────────────────────────────────────────
+type IconName = "grid" | "spark" | "clock" | "chart" | "shield" | "report";
 
 const LogoIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
     <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
   </svg>
 );
 
-const StarIcon = () => (
-  <svg className="lp-star" viewBox="0 0 20 20">
-    <path d="M10 1l2.39 6.26H18.9l-5.3 3.85 2.02 6.26L10 13.5l-5.62 3.87 2.02-6.26L1.1 7.26H7.61z" />
+const ThemeIcon = ({ dark }: { dark: boolean }) => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    {dark ? (
+      <>
+        <circle cx="12" cy="12" r="4.5" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </>
+    ) : (
+      <path d="M21 12.8A8.6 8.6 0 1 1 11.2 3a6.7 6.7 0 0 0 9.8 9.8Z" />
+    )}
   </svg>
 );
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+const FeatureIcon = ({ name }: { name: IconName }) => {
+  const paths: Record<IconName, ReactNode> = {
+    grid: (
+      <>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </>
+    ),
+    spark: (
+      <>
+        <path d="M12 2l1.5 6 5.5 2-5.5 2L12 22l-1.5-10L5 10l5.5-2L12 2Z" />
+        <path d="M4 3v4M2 5h4M20 17v4M18 19h4" />
+      </>
+    ),
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7v5l3.5 2" />
+      </>
+    ),
+    chart: (
+      <>
+        <path d="M4 19V5" />
+        <path d="M4 19h16" />
+        <path d="M7 15l3.5-4 3 2.5L19 7" />
+      </>
+    ),
+    shield: (
+      <>
+        <path d="M12 3l7 3v5.5c0 4.2-2.7 7.6-7 9.5-4.3-1.9-7-5.3-7-9.5V6l7-3Z" />
+        <path d="M9 12l2 2 4-4" />
+      </>
+    ),
+    report: (
+      <>
+        <path d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+        <path d="M14 3v5h5M8.5 13h7M8.5 17h5" />
+      </>
+    ),
+  };
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {paths[name]}
+    </svg>
+  );
+};
 
 const STATS = [
-  { value: "12k+", label: "Resources managed" },
-  { value: "340+", label: "Institutions onboarded" },
-  { value: "98%",  label: "Return rate accuracy" },
-  { value: "4.9★", label: "Average rating" },
+  { value: "12k+", label: "Resources tracked", tone: "blue" },
+  { value: "340+", label: "Campuses onboarded", tone: "green" },
+  { value: "98%", label: "Return accuracy", tone: "amber" },
+  { value: "4.9", label: "Admin satisfaction", tone: "rose" },
 ];
 
-const FEATURES = [
+const FEATURES: Array<{ title: string; desc: string; icon: IconName; tag: string }> = [
   {
-    title: "Smart request management",
-    desc: "Students and staff submit requests instantly. Admins approve, reject, and track all in one unified queue.",
-    iconColor: "rgba(37,99,235,.12)",
-    iconStroke: "#60a5fa",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#60a5fa" strokeWidth="1.6">
-        <rect x="2" y="3" width="16" height="14" rx="2" /><path d="M6 8h8M6 12h5" />
-      </svg>
-    ),
+    title: "Smart request queues",
+    desc: "Approve, reject, and issue from one focused queue.",
+    icon: "grid",
+    tag: "Flow",
   },
   {
-    title: "Real-time availability",
-    desc: "Live inventory tracking across all categories — hardware, software, books, and equipment.",
-    iconColor: "rgba(29,158,117,.12)",
-    iconStroke: "#34d399",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#34d399" strokeWidth="1.6">
-        <path d="M4 10l5 5 8-8" /><circle cx="10" cy="10" r="8" />
-      </svg>
-    ),
+    title: "Live availability",
+    desc: "See what is available, issued, or overdue instantly.",
+    icon: "spark",
+    tag: "Live",
   },
   {
-    title: "Automated due-date alerts",
-    desc: "Overdue reminders sent automatically. Fine tracking keeps accountability without manual effort.",
-    iconColor: "rgba(186,117,23,.12)",
-    iconStroke: "#fbbf24",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fbbf24" strokeWidth="1.6">
-        <circle cx="10" cy="10" r="8" /><path d="M10 6v4l3 2" />
-      </svg>
-    ),
+    title: "Automatic reminders",
+    desc: "Send due-date nudges without manual follow-up.",
+    icon: "clock",
+    tag: "Alerts",
   },
   {
-    title: "Detailed analytics",
-    desc: "Utilisation trends, peak demand periods, and borrowing history — all at a glance with actionable insights.",
-    iconColor: "rgba(139,92,246,.12)",
-    iconStroke: "#a78bfa",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#a78bfa" strokeWidth="1.6">
-        <path d="M3 14l5-5 3 3 6-7" />
-      </svg>
-    ),
+    title: "Usage analytics",
+    desc: "Spot demand trends and busy categories quickly.",
+    icon: "chart",
+    tag: "Insights",
   },
   {
     title: "Role-based access",
-    desc: "Student, staff, and admin roles with fine-grained permissions. The right access for every user type.",
-    iconColor: "rgba(236,72,153,.12)",
-    iconStroke: "#f472b6",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#f472b6" strokeWidth="1.6">
-        <circle cx="7" cy="7" r="4" /><circle cx="14" cy="14" r="3" />
-        <path d="M11 7h5M14 11v5" />
-      </svg>
-    ),
+    desc: "Clean access for students, staff, and admins.",
+    icon: "shield",
+    tag: "Secure",
   },
   {
-    title: "Export & reports",
-    desc: "Monthly and custom reports exportable in seconds. Perfect for institutional audits and reviews.",
-    iconColor: "rgba(6,182,212,.12)",
-    iconStroke: "#22d3ee",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#22d3ee" strokeWidth="1.6">
-        <rect x="3" y="11" width="5" height="6" rx="1" />
-        <rect x="8" y="6" width="5" height="11" rx="1" />
-        <rect x="13" y="2" width="5" height="15" rx="1" />
-      </svg>
-    ),
+    title: "Audit-ready reports",
+    desc: "Export movement history and summaries fast.",
+    icon: "report",
+    tag: "Reports",
   },
 ];
 
-const STEPS = [
-  {
-    num: "1",
-    title: "Register your institution",
-    desc: "Create an admin account and onboard your institution. Add your resource catalogue in one bulk upload.",
-  },
-  {
-    num: "2",
-    title: "Invite your users",
-    desc: "Students and staff join via email invite or institution SSO. Roles are assigned automatically by domain.",
-  },
-  {
-    num: "3",
-    title: "Start managing",
-    desc: "Browse, request, issue, and track. Everything flows through one clean dashboard — no training needed.",
-  },
+const ACTIVITY = [
+  { text: "MacBook Pro issued to Aditi Sharma", time: "2 min ago", tone: "blue" },
+  { text: "Projector returned by Seminar Hall B", time: "12 min ago", tone: "green" },
+  { text: "Database Systems book marked overdue", time: "31 min ago", tone: "red" },
+];
+
+const CATEGORIES = [
+  { label: "Hardware", value: 78, count: "482 items" },
+  { label: "Books", value: 64, count: "2,840 items" },
+  { label: "Lab kits", value: 43, count: "156 items" },
+];
+
+const WORKFLOW = [
+  { title: "Catalogue", desc: "Add resources, categories, owners, and rules." },
+  { title: "Request", desc: "Users search, reserve, and track status." },
+  { title: "Control", desc: "Admins issue, receive, remind, and report." },
 ];
 
 const TESTIMONIALS = [
   {
-    quote: '"We replaced three spreadsheets and a Google Form with URMS. Approval time dropped from days to minutes. It\'s become essential infrastructure."',
+    quote: "Approval time dropped from days to minutes. URMS became the single place our team trusts.",
     name: "Dr. Rekha Nair",
     role: "Library Head, IIT Bombay",
-    initials: "DR",
-    avatarBg: "#1e3a5f",
-    avatarColor: "#93c5fd",
   },
   {
-    quote: '"The fine tracking alone saved us hours of admin work every month. Students actually return things on time because they get automatic reminders."',
+    quote: "The reminders and return flow saved our admin desk hours every week.",
     name: "Suresh Mehta",
     role: "IT Admin, VIT University",
-    initials: "SM",
-    avatarBg: "#1a3a2a",
-    avatarColor: "#34d399",
   },
   {
-    quote: '"Clean interface, no bloat. Our students adopted it in the first week without any training sessions. The dashboard gives exactly the info you need."',
+    quote: "Students picked it up instantly. It feels clean, fast, and made for real campus work.",
     name: "Ananya Pillai",
     role: "Student Coordinator, BITS Pilani",
-    initials: "AP",
-    avatarBg: "#2d1a3a",
-    avatarColor: "#c084fc",
   },
 ];
-
-const FOOTER_LINKS = {
-  Product:   ["Features", "How it works", "Pricing", "Changelog"],
-  Resources: ["Documentation", "API reference", "Guides", "Support"],
-  Company:   ["About", "Blog", "Careers", "Contact"],
-};
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -156,265 +162,226 @@ const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
+    const onScroll = () => setScrolled(window.scrollY > 18);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="lp-page">
+      <div className="lp-ambient lp-ambient-one" />
+      <div className="lp-ambient lp-ambient-two" />
 
-      {/* ── Navbar ── */}
       <nav className={`lp-nav${scrolled ? " lp-nav--scrolled" : ""}`}>
-        <div className="lp-brand">
-          <div className="lp-logo-box"><LogoIcon /></div>
-          <div>
-            <div className="lp-brand-name">URMS</div>
-            <div className="lp-brand-sub">Resource Management</div>
-          </div>
+        <button className="lp-brand" onClick={() => scrollTo("top")} aria-label="Go to top">
+          <span className="lp-logo-box"><LogoIcon /></span>
+          <span>
+            <span className="lp-brand-name">URMS</span>
+            <span className="lp-brand-sub">Unified Resource Management</span>
+          </span>
+        </button>
+
+        <div className="lp-nav-links" aria-label="Landing page sections">
+          <button onClick={() => scrollTo("features")}>Features</button>
+          <button onClick={() => scrollTo("workflow")}>Workflow</button>
+          <button onClick={() => scrollTo("proof")}>Proof</button>
         </div>
+
         <div className="lp-nav-btns">
-          <button className="lp-theme-btn" onClick={toggleTheme} title="Toggle theme">
-            {theme === "dark" ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5" />
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
+          <button className="lp-icon-btn" onClick={toggleTheme} title="Toggle theme" aria-label="Toggle theme">
+            <ThemeIcon dark={theme === "dark"} />
           </button>
           <button className="lp-btn-ghost" onClick={() => navigate("/login")}>Log in</button>
           <button className="lp-btn-solid" onClick={() => navigate("/register")}>Register</button>
         </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section className="lp-hero">
-        <div className="lp-hero-badge">
-          <span className="lp-badge-dot" />
-          Now available for universities &amp; institutions
-        </div>
-        <h1 className="lp-h1">
-          Manage every resource.<br />
-          <span className="lp-h1-accent">Effortlessly.</span>
-        </h1>
-        <p className="lp-hero-sub">
-          URMS is the unified platform for institutions to track, issue, and manage
-          physical and digital resources — all in one place.
-        </p>
-        <div className="lp-hero-ctas">
-          <button className="lp-cta-primary" onClick={() => navigate("/register")}>Get started free →</button>
-          <button className="lp-cta-secondary" onClick={() => navigate("/how-it-works")}>See how it works</button>
-        </div>
-      </section>
-
-      {/* ── Stats bar ── */}
-      <div className="lp-stats-bar">
-        {STATS.map((s) => (
-          <div key={s.label} className="lp-stat-item">
-            <div className="lp-stat-n">{s.value}</div>
-            <div className="lp-stat-l">{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Dashboard mockup ── */}
-      <section className="lp-mockup-section">
-        <div className="lp-mockup-shell">
-          {/* Browser chrome */}
-          <div className="lp-mockup-bar">
-            <span className="lp-mock-dot" style={{ background: "#ff5f57" }} />
-            <span className="lp-mock-dot" style={{ background: "#ffbd2e" }} />
-            <span className="lp-mock-dot" style={{ background: "#28ca41" }} />
-            <div className="lp-mock-url">urms.institution.edu/dashboard</div>
-          </div>
-          {/* App shell */}
-          <div className="lp-mock-body">
-            {/* Sidebar */}
-            <div className="lp-mock-sidebar">
-              <div className="lp-mock-brand">
-                <span className="lp-mock-brand-dot" />URMS
-              </div>
-              {[
-                { label: "Dashboard", active: true },
-                { label: "Browse resources", active: false },
-                { label: "My resources", active: false },
-                { label: "Requests", active: false },
-              ].map((item) => (
-                <div key={item.label} className={`lp-mock-item${item.active ? " lp-mock-item-active" : ""}`}>
-                  {item.label}
-                </div>
+      <main id="top">
+        <section className="lp-hero">
+          <div className="lp-hero-copy">
+            <div className="lp-hero-badge">
+              <span className="lp-badge-dot" />
+              Campus-ready operations for 2026
+            </div>
+            <h1 className="lp-h1">Manage campus resources beautifully.</h1>
+            <p className="lp-hero-sub">
+              URMS brings inventory, requests, returns, reminders, and reports into one modern workspace.
+            </p>
+            <div className="lp-hero-ctas">
+              <button className="lp-cta-primary" onClick={() => navigate("/register")}>Start managing</button>
+              <button className="lp-cta-secondary" onClick={() => scrollTo("workflow")}>View workflow</button>
+            </div>
+            <div className="lp-trust-row" aria-label="Supported resource categories">
+              {["Books", "Hardware", "Software", "Lab kits", "Rooms"].map((item) => (
+                <span key={item}>{item}</span>
               ))}
             </div>
-            {/* Main content */}
-            <div className="lp-mock-main">
-              <div className="lp-mock-heading">Good morning, Admin</div>
-              <div className="lp-mock-stats">
-                {[
-                  { v: "120", l: "Total",     accent: "#2563eb" },
-                  { v: "75",  l: "Available", accent: "#1D9E75" },
-                  { v: "45",  l: "Issued",    accent: "#BA7517" },
-                  { v: "3",   l: "Overdue",   accent: "#ef4444", danger: true },
-                ].map((s) => (
-                  <div key={s.l} className="lp-mock-stat">
-                    <div className="lp-mock-sv" style={s.danger ? { color: "#ef4444" } : {}}>{s.v}</div>
-                    <div className="lp-mock-sl">{s.l}</div>
-                    <div className="lp-mock-accent" style={{ background: s.accent }} />
+          </div>
+
+          <div className="lp-hero-visual" aria-label="URMS product preview">
+            <div className="lp-orbit lp-orbit-one">Live</div>
+            <div className="lp-orbit lp-orbit-two">98%</div>
+            <div className="lp-dashboard">
+              <div className="lp-dash-top">
+                <div>
+                  <span className="lp-dash-eyebrow">Admin overview</span>
+                  <strong>Resource Pulse</strong>
+                </div>
+                <span className="lp-live-pill"><span /> Live sync</span>
+              </div>
+
+              <div className="lp-dash-grid">
+                {STATS.map((stat) => (
+                  <div key={stat.label} className={`lp-dash-stat lp-tone-${stat.tone}`}>
+                    <span>{stat.label}</span>
+                    <strong>{stat.value}</strong>
                   </div>
                 ))}
               </div>
-              <div className="lp-mock-row">
-                <div className="lp-mock-card">
-                  <div className="lp-mock-ct">Recent activity</div>
-                  {[
-                    { color: "#1D9E75", text: "Laptop issued to Ram Kumar" },
-                    { color: "#2563eb", text: "OS Book returned by Aditi" },
-                    { color: "#BA7517", text: "New: Projector added" },
-                  ].map((a) => (
-                    <div key={a.text} className="lp-mock-act-item">
-                      <div className="lp-mock-dot" style={{ background: a.color }} />
-                      <div className="lp-mock-act-text">{a.text}</div>
-                    </div>
-                  ))}
+
+              <div className="lp-dash-panel">
+                <div className="lp-panel-head">
+                  <span>Issue activity</span>
+                  <small>Today</small>
                 </div>
-                <div className="lp-mock-card">
-                  <div className="lp-mock-ct">Utilisation</div>
-                  {[
-                    { label: "Hardware", pct: 75, color: "#2563eb" },
-                    { label: "Software", pct: 60, color: "#1D9E75" },
-                    { label: "Books",    pct: 38, color: "#BA7517" },
-                  ].map((u) => (
-                    <div key={u.label} className="lp-mock-util-row">
-                      <div className="lp-mock-util-label">{u.label}</div>
-                      <div className="lp-mock-util-track">
-                        <div className="lp-mock-util-fill" style={{ width: `${u.pct}%`, background: u.color }} />
-                      </div>
-                      <div className="lp-mock-util-pct">{u.pct}%</div>
+                {ACTIVITY.map((item) => (
+                  <div key={item.text} className="lp-activity-item">
+                    <span className={`lp-activity-dot lp-tone-${item.tone}`} />
+                    <div>
+                      <strong>{item.text}</strong>
+                      <small>{item.time}</small>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="lp-category-panel">
+                {CATEGORIES.map((item) => (
+                  <div key={item.label} className="lp-category-row">
+                    <div>
+                      <strong>{item.label}</strong>
+                      <small>{item.count}</small>
+                    </div>
+                    <div className="lp-meter" aria-hidden="true">
+                      <span style={{ width: `${item.value}%` }} />
+                    </div>
+                    <b>{item.value}%</b>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Features ── */}
-      <section className="lp-features">
-        <div className="lp-section-label">Why URMS</div>
-        <h2 className="lp-section-h">Everything your institution needs</h2>
-        <p className="lp-section-sub">
-          A complete toolkit to manage resources from request to return — built for speed and clarity.
-        </p>
-        <div className="lp-feat-grid">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="lp-feat-card">
-              <div className="lp-feat-icon" style={{ background: f.iconColor }}>
-                {f.icon}
-              </div>
-              <div className="lp-feat-title">{f.title}</div>
-              <div className="lp-feat-desc">{f.desc}</div>
+        <section className="lp-stats-bar" aria-label="URMS statistics">
+          {STATS.map((s) => (
+            <div key={s.label} className="lp-stat-item">
+              <div className="lp-stat-n">{s.value}</div>
+              <div className="lp-stat-l">{s.label}</div>
             </div>
           ))}
-        </div>
-      </section>
+        </section>
 
-      {/* ── How it works ── */}
-      <section className="lp-how">
-        <div className="lp-how-inner">
-          <div className="lp-section-label">How it works</div>
-          <h2 className="lp-section-h">Up and running in minutes</h2>
+        <section className="lp-section lp-features" id="features">
+          <div className="lp-section-kicker">Why URMS</div>
+          <h2 className="lp-section-h">Built for busy institutions.</h2>
           <p className="lp-section-sub">
-            Three simple steps — no complex setup, no IT tickets, no waiting.
+            A cleaner way to track ownership, availability, and approvals.
           </p>
-          <div className="lp-steps">
-            {STEPS.map((step) => (
-              <div key={step.num} className="lp-step">
-                <div className="lp-step-num">{step.num}</div>
-                <div className="lp-step-title">{step.title}</div>
-                <div className="lp-step-desc">{step.desc}</div>
-              </div>
+          <div className="lp-feat-grid">
+            {FEATURES.map((feature) => (
+              <article key={feature.title} className="lp-feat-card">
+                <div className="lp-feat-top">
+                  <span className="lp-feat-icon"><FeatureIcon name={feature.icon} /></span>
+                  <span className="lp-feat-tag">{feature.tag}</span>
+                </div>
+                <h3>{feature.title}</h3>
+                <p>{feature.desc}</p>
+              </article>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Testimonials ── */}
-      <section className="lp-testimonials">
-        <div className="lp-section-label">Testimonials</div>
-        <h2 className="lp-section-h">Trusted by institutions</h2>
-        <p className="lp-section-sub">From small colleges to large universities — teams love URMS.</p>
-        <div className="lp-testi-grid">
-          {TESTIMONIALS.map((t) => (
-            <div key={t.name} className="lp-testi-card">
-              <div className="lp-stars">
-                {[1, 2, 3, 4, 5].map((i) => <StarIcon key={i} />)}
-              </div>
-              <p className="lp-testi-quote">{t.quote}</p>
-              <div className="lp-testi-author">
-                <div className="lp-testi-ava" style={{ background: t.avatarBg, color: t.avatarColor }}>
-                  {t.initials}
-                </div>
-                <div>
-                  <div className="lp-testi-name">{t.name}</div>
-                  <div className="lp-testi-role">{t.role}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CTA Banner ── */}
-      <div className="lp-cta-banner">
-        <div>
-          <h2 className="lp-banner-h">Ready to bring order to your resources?</h2>
-          <p className="lp-banner-sub">Join 340+ institutions already using URMS. Free to start, no credit card required.</p>
-        </div>
-        <div className="lp-banner-btns">
-          <button className="lp-cta-primary" onClick={() => navigate("/register")}>Get started free →</button>
-          <button className="lp-cta-secondary" onClick={() => navigate("/demo")}>Book a demo</button>
-        </div>
-      </div>
-
-      {/* ── Footer ── */}
-      <footer className="lp-footer">
-        <div className="lp-footer-top">
-          <div className="lp-footer-brand-col">
-            <div className="lp-brand">
-              <div className="lp-logo-box"><LogoIcon /></div>
-              <div>
-                <div className="lp-brand-name">URMS</div>
-                <div className="lp-brand-sub">Resource Management</div>
-              </div>
-            </div>
-            <p className="lp-footer-brand-text">
-              A unified platform for institutions to track, issue, and manage all
-              physical and digital resources seamlessly.
+        <section className="lp-workflow" id="workflow">
+          <div className="lp-workflow-copy">
+            <div className="lp-section-kicker">Workflow</div>
+            <h2 className="lp-section-h">Request to return, simplified.</h2>
+            <p className="lp-section-sub">
+              Every resource stays visible through its full lifecycle.
             </p>
           </div>
-          {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
-            <div key={heading}>
-              <div className="lp-footer-col-title">{heading}</div>
-              {links.map((link) => (
-                <div key={link} className="lp-footer-link">{link}</div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="lp-footer-bottom">
-          <div>© 2025 URMS. All rights reserved.</div>
-          <div className="lp-footer-badges">
-            {["Privacy policy", "Terms of service", "Security"].map((b) => (
-              <div key={b} className="lp-fbadge">{b}</div>
+          <div className="lp-timeline">
+            {WORKFLOW.map((step, index) => (
+              <article key={step.title} className="lp-step">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{step.title}</h3>
+                <p>{step.desc}</p>
+              </article>
             ))}
           </div>
-        </div>
-      </footer>
+        </section>
 
+        <section className="lp-proof" id="proof">
+          <div className="lp-proof-card">
+            <div>
+              <div className="lp-section-kicker">Impact</div>
+              <h2 className="lp-section-h">Less admin work. More clarity.</h2>
+            </div>
+            <div className="lp-proof-grid">
+              <div><strong>72%</strong><span>faster request handling</span></div>
+              <div><strong>41%</strong><span>fewer overdue escalations</span></div>
+              <div><strong>3x</strong><span>better audit visibility</span></div>
+            </div>
+          </div>
+          <div className="lp-testi-grid">
+            {TESTIMONIALS.map((item) => (
+              <article className="lp-testi-card" key={item.name}>
+                <div className="lp-stars" aria-label="5 star rating">
+                  {Array.from({ length: 5 }).map((_, index) => <span key={index}>*</span>)}
+                </div>
+                <p>"{item.quote}"</p>
+                <div>
+                  <strong>{item.name}</strong>
+                  <small>{item.role}</small>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="lp-cta-banner">
+          <div>
+            <span className="lp-section-kicker">Get started</span>
+            <h2>Bring every resource into one system.</h2>
+            <p>Launch a cleaner, faster way to manage institutional resources.</p>
+          </div>
+          <div className="lp-banner-btns">
+            <button className="lp-cta-primary" onClick={() => navigate("/register")}>Create account</button>
+            <button className="lp-cta-secondary" onClick={() => navigate("/login")}>Log in</button>
+          </div>
+        </section>
+      </main>
+
+      <footer className="lp-footer">
+        <div className="lp-brand">
+          <span className="lp-logo-box"><LogoIcon /></span>
+          <span>
+            <span className="lp-brand-name">URMS</span>
+            <span className="lp-brand-sub">Unified Resource Management</span>
+          </span>
+        </div>
+        <div className="lp-footer-links">
+          <button onClick={() => scrollTo("features")}>Features</button>
+          <button onClick={() => scrollTo("workflow")}>Workflow</button>
+          <button onClick={() => scrollTo("proof")}>Proof</button>
+        </div>
+        <p>© 2026 URMS. Built for clarity at scale.</p>
+      </footer>
     </div>
   );
 };

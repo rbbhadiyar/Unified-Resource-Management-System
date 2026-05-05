@@ -10,17 +10,18 @@ from app.utils.mail import send_plain_email
 logger = logging.getLogger(__name__)
 
 
-def run_due_reminders() -> int:
+def run_due_reminders(test_mode: bool = False) -> int:
     """Notify users whose due date is tomorrow (one day before deadline)."""
     db = SessionLocal()
     processed = 0
     try:
         tomorrow = date.today() + timedelta(days=1)
+        target_date = date.today() if test_mode else tomorrow
         rows = (
             db.query(LeaseTransaction)
             .filter(LeaseTransaction.transaction_status == "active")
             .filter(LeaseTransaction.reminder_email_sent_at.is_(None))
-            .filter(cast(LeaseTransaction.due_date, Date) == tomorrow)
+            .filter(cast(LeaseTransaction.due_date, Date) == target_date)
             .all()
         )
         for txn in rows:
@@ -29,7 +30,7 @@ def run_due_reminders() -> int:
                 continue
             msg_text = (
                 f"Hello {user.name},\n\n"
-                f"This is a reminder that your borrowed item is due on {tomorrow.isoformat()}. "
+                f"This is a reminder that your borrowed item is due on {target_date.isoformat()}. "
                 "Please return it on time to avoid fines.\n\n"
                 "— URMS"
             )
