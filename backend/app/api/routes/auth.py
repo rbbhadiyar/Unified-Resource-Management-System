@@ -165,12 +165,19 @@ def _hash_reset_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
+@router.get("/test-smtp")
+def test_smtp():
+    from app.config import SMTP_FROM, SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USER
+    sent = send_plain_email(SMTP_FROM, "URMS SMTP test", "SMTP is working from Render.")
+    return {"sent": sent, "smtp_user": SMTP_USER, "smtp_host": SMTP_HOST, "smtp_port": SMTP_PORT, "smtp_from": SMTP_FROM}
+
+
 @router.post("/forgot-password")
 def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == body.email).first()
     generic = {"detail": "If an account exists for this email, reset instructions have been sent."}
     # keep response generic to avoid account enumeration
-    if not user or not user.password:
+    if not user:
         return generic
 
     token = secrets.token_urlsafe(32)
