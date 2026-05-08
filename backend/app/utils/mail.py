@@ -22,6 +22,6 @@ def send_plain_email(to_addr: str, subject: str, body: str) -> bool:
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(SMTP_FROM or SMTP_USER, [to_addr], msg.as_string())
         return True
-    except Exception:
-        logger.exception("SMTP send failed to %s", to_addr)
+    except Exception as e:
+        logger.exception("SMTP send failed to %s: %s", to_addr, str(e))
         return False

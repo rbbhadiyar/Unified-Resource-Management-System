@@ -168,8 +168,23 @@ def _hash_reset_token(token: str) -> str:
 @router.get("/test-smtp")
 def test_smtp():
     from app.config import SMTP_FROM, SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USER
-    sent = send_plain_email(SMTP_FROM, "URMS SMTP test", "SMTP is working from Render.")
-    return {"sent": sent, "smtp_user": SMTP_USER, "smtp_host": SMTP_HOST, "smtp_port": SMTP_PORT, "smtp_from": SMTP_FROM}
+    import smtplib
+    from email.mime.text import MIMEText
+    error_msg = None
+    sent = False
+    try:
+        msg = MIMEText("SMTP test from Render", "plain", "utf-8")
+        msg["Subject"] = "URMS SMTP test"
+        msg["From"] = SMTP_FROM
+        msg["To"] = SMTP_FROM
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_FROM, [SMTP_FROM], msg.as_string())
+        sent = True
+    except Exception as e:
+        error_msg = str(e)
+    return {"sent": sent, "error": error_msg, "smtp_user": SMTP_USER, "smtp_host": SMTP_HOST, "smtp_port": SMTP_PORT, "smtp_from": SMTP_FROM}
 
 
 @router.post("/forgot-password")
