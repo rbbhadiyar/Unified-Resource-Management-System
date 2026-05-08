@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.config import FRONTEND_BASE_URL
+from app.config import FRONTEND_BASE_URL, SMTP_FROM, SMTP_PASSWORD
 from app.db.database import get_db
 from app.deps.auth import get_current_user
 from app.models import Role, User
@@ -167,24 +167,25 @@ def _hash_reset_token(token: str) -> str:
 
 @router.get("/test-smtp")
 def test_smtp():
-    from app.config import SMTP_FROM, SMTP_HOST, SMTP_PASSWORD, SMTP_PORT, SMTP_USER
-    import smtplib
-    from email.mime.text import MIMEText
+    from app.config import SMTP_FROM, SMTP_PASSWORD
     error_msg = None
     sent = False
     try:
-        msg = MIMEText("SMTP test from Render", "plain", "utf-8")
-        msg["Subject"] = "URMS SMTP test"
-        msg["From"] = SMTP_FROM
-        msg["To"] = SMTP_FROM
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_FROM, [SMTP_FROM], msg.as_string())
-        sent = True
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        message = Mail(
+            from_email=SMTP_FROM,
+            to_emails=SMTP_FROM,
+            subject="URMS SMTP test",
+            plain_text_content="SMTP test from Render via SendGrid HTTP API",
+        )
+        sg = SendGridAPIClient(SMTP_PASSWORD)
+        response = sg.send(message)
+        sent = response.status_code in (200, 202)
+        error_msg = f"status={response.status_code}"
     except Exception as e:
         error_msg = str(e)
-    return {"sent": sent, "error": error_msg, "smtp_user": SMTP_USER, "smtp_host": SMTP_HOST, "smtp_port": SMTP_PORT, "smtp_from": SMTP_FROM}
+    return {"sent": sent, "error": error_msg, "smtp_from": SMTP_FROM}
 
 
 @router.post("/forgot-password")
